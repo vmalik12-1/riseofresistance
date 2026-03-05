@@ -13,7 +13,7 @@
     </form>
 
     
-    <img src="data:image/png;base64,{{heatmap[0]}}" alt="Plot Mutants locations">
-    <img src="data:image/png;base64,{{heatmap[1]}}" alt="Plot Mutants">
+   <img src="{{ url_for('main.heatmap_location') }}" alt="Location heatmap">
+   <img src="{{ url_for('main.heatmap_substitution') }}" alt="Substitution heatmap">
 </body>
 </html>
