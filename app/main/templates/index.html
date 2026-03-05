@@ -11,21 +11,16 @@
     </div>
   </div>
 
-  {% if heatmap %}
   <div class="row justify-content-center mt-2 g-4">
     <div class="col-md-10 text-center">
-      <img src="data:image/png;base64,{{ heatmap[0] }}"
-           alt="Plot Mutant Locations"
-           class="img-fluid rounded shadow">
+         <img src="{{ url_for('main.heatmap_location') }}" alt="Location heatmap"  class="img-fluid rounded shadow"> 
+          
     </div>
 
     <div class="col-md-6 mt-4 text-center">
-      <img src="data:image/png;base64,{{ heatmap[1] }}"
-           alt="Plot Mutants"
-           class="img-fluid rounded shadow">
+   <img src="{{ url_for('main.heatmap_substitution') }}" alt="Location heatmap"  class="img-fluid rounded shadow"> 
     </div>
   </div>
-  {% endif %}
 
   <!-- Database Table -->
   <div class="row mt-5">

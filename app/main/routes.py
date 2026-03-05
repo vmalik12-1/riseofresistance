@@ -16,11 +16,11 @@ from app.main import main_blueprint as main
 _heatmap_cache = {"data": None, "timestamp": 0}
 CACHE_TTL = 300  # regenerate every 5 minutes
 
-@main.route("/heatmap/location.png")
+@main.route("/heatmap/location.png", endpoint = "heatmap_location")
 def heatmap_location():
     return _serve_heatmap(index=0)
 
-@main.route("/heatmap/substitution.png")
+@main.route("/heatmap/substitution.png", endpoint = "heatmap_substitution")
 def heatmap_substitution():
     return _serve_heatmap(index=1)
 

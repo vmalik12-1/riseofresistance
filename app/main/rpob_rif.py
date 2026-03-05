@@ -84,7 +84,7 @@ def plot_pie_chart(bp_mut):
 
     wedges, texts, autotexts = plt.pie(
         percentages,
-        labels=[f"{change[0]}-->{change[1]}" if change != "unk" else "Unknown" for change in changes],   # <-- show AT, GC, etc.
+        labels=[f"{change[0]}-->{change[len(change) - 1]}" if change != "unk" else "Unknown" for change in changes],   # <-- show AT, GC, etc.
         startangle=90,
         counterclock=False,
         autopct=lambda p: f'{p:.1f}%' if p > 3 else '',
