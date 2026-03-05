@@ -3,6 +3,7 @@ from app.main.models import Mutation, Admin
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 from config import Config
+import os
 
 app = create_app(Config)
 
@@ -17,6 +18,7 @@ def initDB(*args, **kwargs):
         db.create_all()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3000)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host='0.0.0.0', port=port)
 
     
