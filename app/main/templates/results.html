@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Results</title>
+     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .question {
+            margin-bottom: 40px;
+        }
+
+        .methods-key {
+            background-color: #f4f6f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .methods-key ul {
+            columns: 2;               /* makes it 2-column */
+            -webkit-columns: 2;
+            -moz-columns: 2;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .methods-key li {
+            margin-bottom: 10px;
+        }
+
+        .method-label {
+            font-weight: bold;
+            color: #2c7be5;
+        }
+    </style>
+</head>
+<body>
+    <div class="row justify-content-center">
+        <h1 class="text-center method-label"> {{mutation}} </h1>
+        <div class="text-center mt-4 col-md-5 methods-key me-4">
+    {% if mut_loc == 0 %}
+    <h2> It looks like there is no mutation at this location in the database! </h2>
+    <h4> You may <a href = "{{url_for('main.submit_request')}}" >submit a request </a> to add it. </h4>
+    {% else %}
+    <h2>In the current database: </h2>
+        <li> Your exact mutation occured <strong> {{mut_freq}} </strong> times </li>
+        <li> Mutation location occured <strong> {{mut_loc}} </strong> times </li>
+     <h4> Sources: </h4>
+
+    {% for source in sources %}
+    {% if source.startswith('http') %}
+                <li> <a href="{{ source }}" target="_blank">
+                    {{ source }} 
+                </a> </li>
+                {% else %}
+                 <li> {{source}} </li>
+                {% endif %}
+
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if mut_freq != 0 %}
+    <div class="text-center mt-4 col-md-5">
+    {% if plots %}
+    <img src="data:image/png;base64,{{ plots }}" alt="Plot nucleotide mutations">
+    {% else %}
+    {% endif %}
+    {% endif %}
+   
+    </div>
+</div>
+    
+</body>
+</html>
+{% endblock %}

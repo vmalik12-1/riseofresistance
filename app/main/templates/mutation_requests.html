@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-5">
+
+    <h2 class="text-center mb-4 text-primary">Pending Database Entries</h2>
+
+    <div class="table-responsive shadow rounded">
+        <table class="table table-striped table-hover align-middle mb-0">
+
+            <thead class="table-dark">
+                <tr>
+                    <th style="width:10%">Mutation</th>
+                    <th style="width:10%">Nucleotide Change</th>
+                    <th style="width:20%">Species</th>
+                    <th style="width:30%">Source</th>
+                    <th style="width:20%" class="text-center">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for mutation_request in mutation_requests %}
+                    {% include '_mutation.html' %}
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{url_for('main.index')}}" class="btn btn-primary">
+            Return to Main Page
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Survey Results</title>
+     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .question {
+            margin-bottom: 40px;
+        }
+
+        .methods-key {
+            background-color: #f4f6f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .methods-key ul {
+            columns: 2;               /* makes it 2-column */
+            -webkit-columns: 2;
+            -moz-columns: 2;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .methods-key li {
+            margin-bottom: 10px;
+        }
+
+        .method-label {
+            font-weight: bold;
+            color: #2c7be5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mutation results</h1>
+    <h3>Your exact mutation was found: {{ mut_freq }} times.</h3>
+    <h3>Your mutation location was found: {{ mut_loc}} times.</h3>
+
+    <h3>Mutation type</h3>
+    <img src="data:image/png;base64,{{plots}}" alt="Plot nucleotide mutations">
+
+    <h3>Sources: </h3>
+    {% for source in sources %}
+    <li> <a href = {{source}} target="_blank">{{source}} </a> </li>
+    {% endfor %}
+
+    
+</body>
+</html>

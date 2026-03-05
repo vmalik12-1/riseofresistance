@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Title Row -->
+  <div class="row justify-content-center">
+    <div class="col-12 text-center">
+      <h1 class="mb-2">rpoB Mutation Database</h1>
+    </div>
+  </div>
+
+  {% if heatmap %}
+  <div class="row justify-content-center mt-2 g-4">
+    <div class="col-md-10 text-center">
+      <img src="data:image/png;base64,{{ heatmap[0] }}"
+           alt="Plot Mutant Locations"
+           class="img-fluid rounded shadow">
+    </div>
+
+    <div class="col-md-6 mt-4 text-center">
+      <img src="data:image/png;base64,{{ heatmap[1] }}"
+           alt="Plot Mutants"
+           class="img-fluid rounded shadow">
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Database Table -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <h3 class="mb-3 text-center">Database Entries</h3>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Amino acid mutation</th>
+              <th>Base pair mutation</th>
+              <th>Species</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for m in mutations %}
+            <tr>
+              <td>{{ m.id }}</td>
+              <td>{{ m.aa_mut }}</td>
+              <td>{{ m.bp_mut }}</td>
+              <td>{{ m.species }}</td>
+              <td>
+                {% if m.source.startswith('http') %}
+                <a href="{{ m.source }}" target="_blank">
+                    {{ m.source }}
+                </a>
+                {% else %}
+                {{ m.source }}
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

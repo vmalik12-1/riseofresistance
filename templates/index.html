@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mutation analysis</title>
+</head>
+<body>
+    <h1> Mutation database </h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="mutation">Enter Mutation:</label>
+        <input type="text" name="mutation" id="mutation" required>
+        <br><br>
+        <button type="submit">Analyze</button>
+    </form>
+
+    
+    <img src="data:image/png;base64,{{heatmap[0]}}" alt="Plot Mutants locations">
+    <img src="data:image/png;base64,{{heatmap[1]}}" alt="Plot Mutants">
+</body>
+</html>

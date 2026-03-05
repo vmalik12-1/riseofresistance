@@ -1,0 +1,82 @@
+ 
+{% extends "base.html" %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+
+<div class="container mb-4">
+
+  <div class="card shadow-sm border-primary">
+    <div class="card-body">
+
+      <h4 class="card-title text-primary mb-3">Mutation Entry Guidelines</h4>
+
+      <ul class="mb-3">
+
+        <li>
+          <strong>Substitutions:</strong>  
+          Enter substitutions in the format <code>A512D</code>, where the original amino acid appears first,
+          followed by the position number and the substituted amino acid.
+        </li>
+
+        <li>
+          <strong>Deletions:</strong>  
+          Enter deletions using the format <code>XG510Q518</code>, where X marks a deletion, followed by each AA deleted and position of deletion(s).
+        </li>
+
+        <li>
+          <strong>Insertions:</strong>  
+          Enter insertions using the format <code>ZD516Q517</code>, where Z marks an insertion, followed by each AA inserted and position of insertion(s).
+        </li>
+
+        <li>
+          <strong>Base pair changes:</strong>  
+          Record base pair substitutions using two-letter notation with the original base first and the mutated base second (coding strand changes only).
+          <br>
+          Example: <code>AC</code> (A → C).
+        </li>
+
+        <li>
+          <strong>Multiple base pair changes:</strong>  
+          Separate multiple changes with commas and <strong>no spaces</strong>.
+          <br>
+          Example: <code>CT,AG,TA</code>
+        </li>
+
+        <li>
+          <strong>Unknown base pair changes:</strong>  
+          If the base pair change is unknown, enter <code>unk</code>.
+        </li>
+
+        <li>
+          <strong>Source citation:</strong>  
+          If the mutation was experimentally determined, list the contributor(s) in the format:
+          <br>
+          <code>Name(s) or Group Number, Course Number Term+Year</code>
+          <br>
+          Example: <code>Group 1, BB1801 C25</code>
+          <br>
+          <br>
+          If found in published research article, enter doi link.
+        </li>
+
+      </ul>
+    </div>
+  </div>
+
+</div>
+ <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="mb-3">
+          <form action = "{{url_for('main.submit_request')}}" method = "POST">
+            {{form.hidden_tag()}}
+            {{wtf.form_field(form.aa_mutation)}}
+            {{wtf.form_field(form.bp_mutation)}}
+            {{wtf.form_field(form.species)}}
+            {{wtf.form_field(form.source)}}
+            {{wtf.form_field(form.submit)}}
+        </form> 
+        </div>
+    </div>
+  </div>
+{% endblock %}
