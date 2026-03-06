@@ -6,7 +6,6 @@ from app.main.forms import ApproveForm, DenyForm, EmptyForm, MutationForm, NewMu
 from flask_login import login_required
 from sqlalchemy import text
 from app.main.rpob_rif import find_mutation, plot_heatmap_sns
-from functools import lru_cache
 import time
 import io
 import base64
@@ -16,11 +15,11 @@ from app.main import main_blueprint as main
 _heatmap_cache = {"data": None, "timestamp": 0}
 CACHE_TTL = 300  # regenerate every 5 minutes
 
-@main.route("/heatmap/location.png", endpoint = "heatmap_location")
+@main.route("/heatmap/location.png")
 def heatmap_location():
     return _serve_heatmap(index=0)
 
-@main.route("/heatmap/substitution.png", endpoint = "heatmap_substitution")
+@main.route("/heatmap/substitution.png")
 def heatmap_substitution():
     return _serve_heatmap(index=1)
 
@@ -83,6 +82,15 @@ def view_requests():
     aform = ApproveForm()
     dform = DenyForm()
     return render_template('mutation_requests.html', mutation_requests = mutation_requests, aform = aform, dform = dform)
+
+@main.route("/admin/<int:mutation_id>/delete")
+@login_required
+def delete_entry(mutation_id):
+    m = db.session.scalars(sqla.select(Mutation).where(Mutation.id == mutation_id)).first()
+    db.session.delete(m)
+    db.session.commit()
+    flash("Mutation deleted")
+    return redirect(url_for('main.index'))
 
 @main.route("/admin/requests/<int:new_mutation_id>/accept", methods = ['POST'])
 @login_required

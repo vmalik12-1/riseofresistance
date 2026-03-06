@@ -204,6 +204,7 @@ def plot_heatmap_sns():
 
 
     init_analysis["heatmap"].append(base64.b64encode(buf.getvalue()).decode())
-
+    print(f"DEBUG: heatmap[0] length: {len(init_analysis['heatmap'][0])}")
+    print(f"DEBUG: heatmap[1] length: {len(init_analysis['heatmap'][1])}")
     return init_analysis
 
