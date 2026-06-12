@@ -3,23 +3,28 @@
 
 {% block content %}
 <div class="container py-5">
-
-  <!-- Title Row -->
   <div class="row justify-content-center">
     <div class="col-12 text-center">
-      <h1 class="mb-2">rpoB Mutation Database</h1>
+      <h1 class="mb-2">Welcome to the rpoB Mutation Database</h1>
     </div>
   </div>
 
-  <div class="row justify-content-center mt-2 g-4">
-    <div class="col-md-10 text-center">
-         <img src="{{ url_for('main.heatmap_location') }}" alt="Location heatmap"  class="img-fluid rounded shadow"> 
-          
-    </div>
+  <div class="row justify-content-center">
 
-    <div class="col-md-6 mt-4 text-center">
-   <img src="{{ url_for('main.heatmap_substitution') }}" alt="Location heatmap"  class="img-fluid rounded shadow"> 
-    </div>
+  <div class="col-lg-8">
+        <iframe
+            src="{{ url_for('main.heatmap') }}"
+            alt="Location heatmap"
+            style="width: 100%; height: 170vh; border:0.5px solid #8b1e2d; padding: 1.5rem; margin: 1rem 0;;">
+        </iframe>
+  </div>  
+  <div class="col-lg-4">
+        <div class = "academic-container">
+          <p> Use cursor to select and zoom in on areas of interest. </p>
+          <p> Use <strong>Autoscale</strong> button in top right corner to reset the axes.</p>
+          <p> Hover over cells to identify mutation IDs, then locate IDs in the <strong>Database Entries</strong> table below for more information about mutation.</p>
+        </div>
+  </div>  
   </div>
 
   <!-- Database Table -->

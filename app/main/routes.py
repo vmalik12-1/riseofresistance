@@ -1,39 +1,47 @@
 from app import db
 from flask import render_template, flash, redirect, url_for, send_file, request, jsonify
 import sqlalchemy as sqla
-from app.main.models import NewMutation, Mutation
+from app.main.models import NewMutation, Mutation, PlotCache
 from app.main.forms import ApproveForm, DenyForm, EmptyForm, MutationForm, NewMutationForm
 from flask_login import login_required
 from sqlalchemy import text
 from app.main.rpob_rif import find_mutation, plot_heatmap_sns
+from datetime import datetime, timezone
 import time
 import io
 import base64
+import threading
 
 from app.main import main_blueprint as main
 
-_heatmap_cache = {"data": None, "timestamp": 0}
-CACHE_TTL = 300  # regenerate every 5 minutes
 
-@main.route("/heatmap/location.png")
-def heatmap_location():
-    return _serve_heatmap(index=0)
 
-@main.route("/heatmap/substitution.png")
-def heatmap_substitution():
-    return _serve_heatmap(index=1)
+@main.route("/heatmap.png")
+def heatmap():
+    return _serve_heatmap()
 
-def _serve_heatmap(index):
-    global _heatmap_cache
-    now = time.time()
-    if _heatmap_cache["data"] is None or (now - _heatmap_cache["timestamp"]) > CACHE_TTL:
-        _heatmap_cache["data"] = plot_heatmap_sns()
-        _heatmap_cache["timestamp"] = now
-    
-    img_bytes = base64.b64decode(_heatmap_cache["data"]["heatmap"][index])
-    buf = io.BytesIO(img_bytes)
-    buf.seek(0)
-    return send_file(buf, mimetype="image/png", max_age=300)
+
+def _serve_heatmap():
+    map_name = 'heatmap'
+    #_regenerate_heatmap_cache() #temporary for dev purposes
+    cached_map = db.session.scalars(sqla.select(PlotCache).where(PlotCache.name == map_name)).first()
+    if cached_map is None:
+        _regenerate_heatmap_cache()
+        cached_map = db.session.scalars(
+            sqla.select(PlotCache).where(PlotCache.name == map_name)
+        ).first()
+    return render_template("_heatmap.html", plot_div = cached_map.html_data)
+
+def _regenerate_heatmap_cache():
+    data = plot_heatmap_sns()
+    map_name = 'heatmap'
+    exists = db.session.scalars(sqla.select(PlotCache).where(PlotCache.name == map_name)).first()
+    if exists:
+        exists.html_data = data["heatmap"][0]
+        exists.updated_at = datetime.now(timezone.utc)
+    else:
+        db.session.add(PlotCache(name=map_name, html_data = data["heatmap"][0]))
+    db.session.commit()
 
 @main.route("/", methods=["GET"])
 @main.route('/index', methods=['GET'])
@@ -106,6 +114,7 @@ def accept_request(new_mutation_id):
         db.session.add(m)
         db.session.delete(new_m)
         db.session.commit()
+        _regenerate_heatmap_cache()
         flash("Mutation request approved.")
         return redirect(url_for('main.index'))
     mutation_requests = db.session.scalars(sqla.select(NewMutation)).all()

@@ -10,6 +10,8 @@ from app.main.models import Mutation
 import seaborn as sns
 import sqlalchemy as sqla
 from app import db
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 fname = "1801.csv" 
 aa_s = ["a", "g", "l", "i", "v", "m", "p", "c", "s", "t", "q", "n", "h", "k", "r", "d", "e", "f", "w", "y"]
@@ -107,11 +109,13 @@ def plot_heatmap_sns():
     init_analysis = {
         "heatmap": []
     }
-    labels = [x.upper() for x in aa_s]
+    aa_labels = [x.upper() for x in aa_s]
     mut_matrix = []
     loc_matrix = []
     aa_comb = []
     aa_locs = []
+    id_aa_matrix = []
+    id_loc_matrix = []
 
     mutations = db.session.scalars(sqla.select(Mutation)).all()
 
@@ -119,92 +123,152 @@ def plot_heatmap_sns():
         m = mutation.get_aa_mut().lower()
         if m[0] in aa_s and m[len(m) - 1] in aa_s:
             aa_comb.append([m[0], m[len(m) - 1]])
+            id_aa_matrix.append(mutation.get_mut_id())
             m_loc_str = re.findall(r'\d+', m)
             m_loc = int(m_loc_str[0])
             aa_locs.append((m_loc, m[len(m) - 1]))
+            id_loc_matrix.append(mutation.get_mut_id())
 
     all_locs = [aa_loc[0] for aa_loc in aa_locs]
 
-    loc_min = min(all_locs)
-    loc_max = max(all_locs)
+    loc_min = min(all_locs) - 10
+    loc_max = max(all_locs) + 10
 
     # create continuous range
     locs = list(range(loc_min, loc_max + 1))
     
+
+    mutant_id_loc_matrix = []
     for aa_m in aa_s:
         freq = []
+        mutant_ids_per_row = []
         for loc in locs:
             occurs = aa_locs.count((loc, aa_m))
+            if occurs > 0:
+                mutant_ids_per_row.append(find_mutation_ids_loc(loc,aa_m))
+            else:
+                mutant_ids_per_row.append("No mutants")
             freq.append(occurs)
         loc_matrix.append(freq)
+        mutant_id_loc_matrix.append(mutant_ids_per_row)
   
-    loc_matrix_df = pd.DataFrame(loc_matrix, index=labels, columns=locs)
-
-    fig, ax = plt.subplots(figsize=(12, 5))
-    sns.heatmap(
-        loc_matrix_df,
-        ax=ax,
-        cmap="PuRd",
-        annot=False,
-        fmt="d",
-        cbar_kws={"label": "Mutation Count", "shrink": 0.6},
-        square=False,
-    )
-
-    ax.set_xticks(ax.get_xticks()[::5])
-
-    ax.set_title("Heatmap of Single Amino Acid Substitution Mutations", fontsize=12, fontweight="bold", pad=12)
-    ax.set_xlabel("Amino Acid location", fontsize=12, labelpad=10)
-    ax.set_ylabel("Mutated Amino Acid", fontsize=12, labelpad=10)
-    ax.tick_params(axis="both", labelsize=10)
-
-    fig.tight_layout()
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-    plt.close()
-    buf.seek(0)
-
-    init_analysis["heatmap"].append(base64.b64encode(buf.getvalue()).decode())
-
-
-    for aa_m in aa_s:
-        freq = []
-        for aa_o in aa_s:
-            occurs = aa_comb.count([aa_o, aa_m])
-            freq.append(occurs)
-        mut_matrix.append(freq)
+    loc_matrix_df = pd.DataFrame(loc_matrix, index=aa_labels, columns=locs)
 
     
-    matrix_df = pd.DataFrame(mut_matrix, index=labels, columns=labels)
+   
+    mutant_id_aa_matrix = []
+    for aa_m in aa_s:
+        freq = []
+        mutant_ids_per_row = []
+        for aa_o in aa_s:
+            occurs = aa_comb.count([aa_o, aa_m])
+            if occurs > 0:
+                mutant_ids_per_row.append(find_mutation_ids_aa(aa_o,aa_m))
+            else:
+                mutant_ids_per_row.append("No mutants")
+            freq.append(occurs)
+        mut_matrix.append(freq)
+        mutant_id_aa_matrix.append(mutant_ids_per_row)
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    
+    matrix_df = pd.DataFrame(mut_matrix, index=aa_labels, columns=aa_labels)
 
-    sns.heatmap(
-        matrix_df,
-        ax=ax,
-        cmap="YlOrRd",
-        annot=False,
-        fmt="d",
-        cbar_kws={"label": "Mutation Count", "shrink": 0.6},
-        square=False,
+    #make plotly subplots
+    plotly_fig = make_subplots(rows=2, cols=1, subplot_titles=("Mutation loci", "Amino acid substitutions"), vertical_spacing=0.10)
+    my_config = {'displaylogo': False, 'modeBarButtonsToRemove': ['zoom', 'pan', 'resetScale', 'zoomIn', 'zoomOut'], 'displayModeBar': True}
+    loc_x_labels = locs
+    plotly_fig.add_trace(go.Heatmap(
+        x=loc_x_labels,
+        y=aa_labels,
+        z=loc_matrix_df,
+        xgap=0.1,
+        ygap=1,
+        customdata=mutant_id_loc_matrix,
+        hovertemplate=("Locus: %{x} <br>" + "Mutated AA: %{y} <br>" + "IDs: %{customdata}<extra></extra>"),
+        colorscale='Blues',
+        colorbar=dict(
+        thickness=15,
+        len=0.45, 
+        orientation="v",
+        y=0.78,
+        yanchor="middle"
     )
+    ), row=1, col=1)
 
-    ax.set_title("Heatmap of Single Amino Acid Substitution Mutations", fontsize=12, fontweight="bold", pad=12)
-    ax.set_xlabel("Original Amino Acid", fontsize=12, labelpad=10)
-    ax.set_ylabel("Mutated Amino Acid", fontsize=12, labelpad=10)
-    ax.tick_params(axis="both", labelsize=10)
+    plotly_fig.add_trace(go.Heatmap(
+        x=aa_labels,
+        y=aa_labels,
+        z=matrix_df,
+        customdata=mutant_id_aa_matrix,
+        hovertemplate=("Original AA: %{x} <br>" + "Mutated AA: %{y} <br>" + "IDs: %{customdata}<extra></extra>"),
+        xgap=1,
+        ygap=1,
+        colorscale=[
+            [0.0,  "#FBF8F2"],
+            [0.15, "#F5E6D8"],
+            [0.35, "#EDCBBF"],
+            [0.55, "#D9A3A8"],
+            [0.75, "#C07A90"],
+            [1.0,  "#9A5475"],
+        ],
+        colorbar=dict(
+        thickness=15,
+        len=0.45,         # spans the height of the bottom subplot
+        orientation="v",
+        y=0.22,           # centers on the bottom subplot
+        yanchor="middle"
+    ) 
+    ), row=2,col=1)
 
-    fig.tight_layout()
+    #first subplot (col 1)
+    
+    plotly_fig.update_xaxes(title_text="Amino Acid Location", range=[loc_min, loc_max],minallowed=loc_min, 
+                            maxallowed=loc_max, constrain="domain", row=1, col=1)
+    plotly_fig.update_yaxes(title_text="Substituted Amino Acid", constrain="domain", gridcolor="black", row=1, col=1)
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight")
-    plt.close()
-    buf.seek(0)
+    #second subplot (col 2)
+    plotly_fig.update_xaxes(title_text="Original Amino Acid", row=2, col=1)
+    plotly_fig.update_yaxes(title_text="Substituted Amino Acid", row=2, col=1)
+
+    plotly_fig.update_layout(
+    title={
+        "text": "Frequencies of Amino Acid Mutations",
+        "x": 0.5,
+        "xanchor": "center",
+        "font": {
+            "size": 28,
+            "family": "Arial, sans-serif"
+        }
+    })
+    html_string = plotly_fig.to_html(full_html = False, config=my_config, include_plotlyjs='cdn')
 
 
-    init_analysis["heatmap"].append(base64.b64encode(buf.getvalue()).decode())
-    print(f"DEBUG: heatmap[0] length: {len(init_analysis['heatmap'][0])}")
-    print(f"DEBUG: heatmap[1] length: {len(init_analysis['heatmap'][1])}")
+    init_analysis["heatmap"].append(html_string)
+
+    """ print(f"DEBUG: heatmap[0] length: {len(init_analysis['heatmap'][0])}")
+    print(f"DEBUG: aa_comb sample: {aa_comb[:10]}")
+    print(f"DEBUG: aa_comb length: {len(aa_comb)}")
+    print(f"DEBUG: mut_matrix sum: {sum(sum(row) for row in mut_matrix)}") """
     return init_analysis
+
+def find_mutation_ids_loc(loc, mutated_aa):
+    back_mutation = f"{loc}{mutated_aa}".lower()
+    mutants = db.session.scalars(sqla.select(Mutation).where(Mutation.aa_mut.ilike(f"%{back_mutation}"))).all()
+    mutant_ids = []
+    for mutant in mutants:
+        mutant_ids.append(mutant.get_mut_id())
+    return mutant_ids
+
+def find_mutation_ids_aa(original_aa, mutated_aa):
+    mut = db.session.scalars(sqla.select(Mutation).where(Mutation.id==1)).all()
+    mutants = db.session.scalars(sqla.select(Mutation).where(Mutation.aa_mut.startswith(original_aa.upper())
+                                                             & Mutation.aa_mut.endswith(mutated_aa.upper()))).all()
+    mutant_ids = []
+    for mutant in mutants:
+        mutant_ids.append(mutant.get_mut_id())
+    
+    return mutant_ids
+
+    
+
 

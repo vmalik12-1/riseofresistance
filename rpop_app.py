@@ -1,8 +1,23 @@
 from flask import Flask, request, render_template, make_response
 import pandas as pd
+from flask_sqlalchemy import SQLAlchemy 
 from app.main.rpob_rif import find_mutation, plot_heatmap, plot_heatmap_sns
+from dotenv import load_dotenv
+import psycopg2
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
+
+user = os.getenv("POSTGRES_USER")
+password = os.getenv("POSTGRES_PASSWORD")
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+db = SQLAlchemy(app)
 
 @app.route("/", methods=["GET", "POST"])
 def index():

@@ -1,9 +1,11 @@
 from typing import Optional
 import sqlalchemy as sqla
+from sqlalchemy import func, TIMESTAMP
 import sqlalchemy.orm as sqlo
 from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from datetime import datetime, timezone
 
 @login.user_loader
 def load_user(id):
@@ -31,6 +33,15 @@ class Mutation(db.Model):
     
     def get_source(self):
         return self.source
+    
+    def get_mut_id(self):
+        return self.id
+    
+    def get_og_aa(self):
+        return self.aa_mut[0]
+    
+    def get_mutated_aa(self):
+        return self.aa_mut[len(self.aa_mut) - 1]
 
 class NewMutation(db.Model):
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
@@ -42,8 +53,17 @@ class NewMutation(db.Model):
     def __repr__(self):
         return 'Key id: {} - aa_mut: {} - bp_mut: {} - species {}>'.format(self.id,self.aa_mut,self.bp_mut, self.species)
     
+    def get_mut_id(self):
+        return self.id
+    
     def get_aa_mut(self):
         return self.aa_mut
+    
+    def get_og_aa(self):
+        return self.aa_mut[0]
+    
+    def get_mutated_aa(self):
+        return self.aa_mut[len(self.aa_mut) - 1]
     
     def get_bp_mut(self):
         return self.bp_mut
@@ -70,3 +90,10 @@ class Admin(UserMixin, db.Model):
 
     def get_username(self):
         return self.username
+
+class PlotCache(db.Model):
+    id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64), unique=True)
+    html_data : sqlo.Mapped[str] = sqlo.mapped_column(sqla.Text)  # html interactive plotly
+    updated_at : sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc))
+    

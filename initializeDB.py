@@ -4,12 +4,16 @@ import pandas as pd
 
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+from dotenv import load_dotenv
 import os
 
+load_dotenv()
 app = create_app()
 app.app_context().push()
-
+db.drop_all()
+print("Before create_all")
 db.create_all()
+print("After create_all")
 
 fname = "1801.csv"
 try:
@@ -26,9 +30,13 @@ for _, row in df.iterrows():
     db.session.add(m)
 db.session.commit()
 
-a = Admin(username = "vanya")
-a.set_password("123")
-db.session.add(a)
-db.session.commit()
+admin_exists = db.session.scalars(sqla.select(Admin).where(Admin.username == 'vanya')).first()
+if not admin_exists:
+    a = Admin(username = os.getenv("ADMIN_USER"))
+    a.set_password(os.getenv("ADMIN_PASSWORD"))
+    db.session.add(a)
+    db.session.commit()
+
+print("DONE")
 
 
