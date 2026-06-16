@@ -49,6 +49,23 @@ def index():
     mutations = db.session.scalars(sqla.select(Mutation)).all()
     return render_template("index.html", mutations = mutations)
 
+@main.route('/api/get-mutations', methods=['POST'])
+def get_mutations():
+    data = request.get_json()
+    clicked_ids = data.get('ids', [])
+    
+    result = {}
+    for mut_id in clicked_ids:
+        db_record = db.session.scalars(sqla.select(Mutation).where(Mutation.id == mut_id)).first()
+        if db_record:
+            result[mut_id] = {
+                "aa_mut": db_record.aa_mut,
+                "bp_mut": db_record.bp_mut,
+                "species": db_record.species,
+                "source": db_record.source
+            }      
+    return jsonify(result)
+
 @main.route('/analyze', methods=['GET', 'POST'])
 def analyze_mutation():
     mForm = MutationForm()
